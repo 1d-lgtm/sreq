@@ -147,6 +147,14 @@ providers:
     address: localhost:8500
     # token: ${CONSUL_TOKEN}
     # datacenter: us-east-1
+    #
+    # Environment-specific Consul addresses (optional)
+    # Use when different environments use different Consul servers
+    # Example: non-prod Consul for dev/qa/staging, prod Consul for prod
+    # env_addresses:
+    #   prod: consul-prod.internal:8500
+    #   staging: consul-staging.internal:8500
+    #
     paths:
       base_url: "{project}/{env}/{app}/{region}/config/{service}/base_url"
       username: "{project}/{env}/{app}/{region}/config/{service}/username"

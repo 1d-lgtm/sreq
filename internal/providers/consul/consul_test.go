@@ -81,6 +81,142 @@ func TestResolvePath(t *testing.T) {
 	}
 }
 
+func TestProvider_getAddressForEnv(t *testing.T) {
+	tests := []struct {
+		name           string
+		defaultAddress string
+		envAddresses   map[string]string
+		env            string
+		expected       string
+	}{
+		{
+			name:           "default address only",
+			defaultAddress: "consul.default:8500",
+			envAddresses:   nil,
+			env:            "prod",
+			expected:       "consul.default:8500",
+		},
+		{
+			name:           "env override exists",
+			defaultAddress: "consul-nonprod:8500",
+			envAddresses: map[string]string{
+				"prod": "consul-prod:8500",
+			},
+			env:      "prod",
+			expected: "consul-prod:8500",
+		},
+		{
+			name:           "env override not found - use default",
+			defaultAddress: "consul-nonprod:8500",
+			envAddresses: map[string]string{
+				"prod": "consul-prod:8500",
+			},
+			env:      "dev",
+			expected: "consul-nonprod:8500",
+		},
+		{
+			name:           "multiple env addresses",
+			defaultAddress: "consul-default:8500",
+			envAddresses: map[string]string{
+				"prod":    "consul-prod:8500",
+				"staging": "consul-staging:8500",
+			},
+			env:      "staging",
+			expected: "consul-staging:8500",
+		},
+		{
+			name:           "empty env uses default",
+			defaultAddress: "consul.default:8500",
+			envAddresses: map[string]string{
+				"prod": "consul-prod:8500",
+			},
+			env:      "",
+			expected: "consul.default:8500",
+		},
+		{
+			name:           "plivo use case - nonprod default, prod separate",
+			defaultAddress: "consul-nonprod.internal:8500",
+			envAddresses: map[string]string{
+				"prod": "consul-prod.internal:8500",
+			},
+			env:      "qa",
+			expected: "consul-nonprod.internal:8500",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Provider{
+				defaultAddress: tt.defaultAddress,
+				envAddresses:   tt.envAddresses,
+			}
+			result := p.getAddressForEnv(tt.env)
+			if result != tt.expected {
+				t.Errorf("got %q, want %q", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestProvider_GetAddresses(t *testing.T) {
+	tests := []struct {
+		name           string
+		defaultAddress string
+		envAddresses   map[string]string
+		expected       map[string]string
+	}{
+		{
+			name:           "default only",
+			defaultAddress: "consul.default:8500",
+			envAddresses:   nil,
+			expected: map[string]string{
+				"default": "consul.default:8500",
+			},
+		},
+		{
+			name:           "default and env addresses",
+			defaultAddress: "consul-nonprod:8500",
+			envAddresses: map[string]string{
+				"prod": "consul-prod:8500",
+			},
+			expected: map[string]string{
+				"default": "consul-nonprod:8500",
+				"prod":    "consul-prod:8500",
+			},
+		},
+		{
+			name:           "only env addresses",
+			defaultAddress: "",
+			envAddresses: map[string]string{
+				"prod": "consul-prod:8500",
+				"dev":  "consul-dev:8500",
+			},
+			expected: map[string]string{
+				"prod": "consul-prod:8500",
+				"dev":  "consul-dev:8500",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Provider{
+				defaultAddress: tt.defaultAddress,
+				envAddresses:   tt.envAddresses,
+			}
+			result := p.GetAddresses()
+			if len(result) != len(tt.expected) {
+				t.Errorf("got %d addresses, want %d", len(result), len(tt.expected))
+			}
+			for key, expectedVal := range tt.expected {
+				if result[key] != expectedVal {
+					t.Errorf("for key %q, got %q, want %q", key, result[key], expectedVal)
+				}
+			}
+		})
+	}
+}
+
 func TestResolvePathSimple(t *testing.T) {
 	tests := []struct {
 		name     string

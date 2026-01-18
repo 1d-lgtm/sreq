@@ -39,10 +39,11 @@ func (r *Resolver) initProviders() error {
 		switch name {
 		case "consul":
 			provider, err := consul.New(consul.Config{
-				Address:    providerCfg.Address,
-				Token:      providerCfg.Token,
-				Datacenter: providerCfg.Datacenter,
-				Paths:      providerCfg.Paths,
+				Address:      providerCfg.Address,
+				EnvAddresses: providerCfg.EnvAddresses,
+				Token:        providerCfg.Token,
+				Datacenter:   providerCfg.Datacenter,
+				Paths:        providerCfg.Paths,
 			})
 			if err != nil {
 				return sreerrors.ProviderInitFailed("Consul", err)
@@ -105,6 +106,9 @@ func (r *Resolver) Resolve(ctx context.Context, opts ResolveOptions) (*types.Res
 	if opts.App != "" {
 		vars["app"] = opts.App
 	}
+
+	// Add environment to context for providers that need it (e.g., Consul with env-specific addresses)
+	ctx = context.WithValue(ctx, consul.EnvContextKey, opts.Env)
 
 	if svcCfg.IsAdvancedMode() {
 		// Advanced mode: use explicit path mappings
