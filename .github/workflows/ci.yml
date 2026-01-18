@@ -1,0 +1,34 @@
+name: CI
+
+# Runs on every push to main and on all PRs
+# This ensures code compiles and tests pass before merging
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
