@@ -84,11 +84,75 @@ go test ./...                   # Test
 ./sreq --help                   # Run
 ```
 
-## Commit Convention
+## Git Workflow
+
+### Branch Naming
+
+Always use prefixed branch names:
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `feat/` | New feature | `feat/consul-provider` |
+| `fix/` | Bug fix | `fix/config-parsing` |
+| `refactor/` | Code refactoring | `refactor/provider-interface` |
+| `docs/` | Documentation | `docs/api-examples` |
+| `test/` | Adding tests | `test/consul-integration` |
+| `chore/` | Maintenance | `chore/update-deps` |
+
+```bash
+# Create branch
+git checkout -b feat/consul-provider
+
+# Always branch from latest main
+git checkout main && git pull && git checkout -b feat/new-feature
+```
+
+### Commit Convention
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 <type>(<scope>): <description>
 
-Types: feat, fix, docs, style, refactor, test, chore
-Example: feat(consul): implement KV provider
+[optional body]
+```
+
+**Types:**
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `style` | Formatting, no code change |
+| `refactor` | Code change, no feature/fix |
+| `test` | Adding/updating tests |
+| `chore` | Maintenance, deps, CI |
+
+**Scopes:** `consul`, `aws`, `vault`, `config`, `client`, `cli`, `cache`
+
+**Examples:**
+```bash
+feat(consul): implement KV provider with path templates
+fix(aws): handle pagination in secret listing
+docs(readme): add installation instructions
+refactor(providers): extract common path resolution logic
+test(consul): add integration tests for KV fetch
+chore(deps): update aws-sdk-go to v2.5.0
+```
+
+### PR Workflow
+
+1. Create feature branch from `main`
+2. Make commits following convention
+3. Push and create PR to `main`
+4. After merge, delete feature branch
+
+```bash
+# Typical flow
+git checkout main && git pull
+git checkout -b feat/consul-provider
+# ... make changes ...
+git add . && git commit -m "feat(consul): implement KV provider"
+git push -u origin feat/consul-provider
+# Create PR on GitHub
 ```
