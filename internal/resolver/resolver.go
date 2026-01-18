@@ -65,6 +65,7 @@ type ResolveOptions struct {
 	Env     string
 	Region  string
 	Project string
+	App     string
 }
 
 // Resolve resolves credentials for a service with given options
@@ -90,6 +91,9 @@ func (r *Resolver) Resolve(ctx context.Context, opts ResolveOptions) (*types.Res
 	}
 	if opts.Project != "" {
 		vars["project"] = opts.Project
+	}
+	if opts.App != "" {
+		vars["app"] = opts.App
 	}
 
 	if svcCfg.IsAdvancedMode() {

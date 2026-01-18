@@ -70,7 +70,34 @@ func runRequest(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Use default environment if not specified
+	// Load context values (from -c flag or default_context)
+	ctxName := contextName
+	if ctxName == "" {
+		ctxName = cfg.DefaultContext
+	}
+
+	// Apply context values as base, then override with explicit CLI flags
+	if ctxName != "" {
+		if ctx, exists := cfg.Contexts[ctxName]; exists {
+			if environment == "" {
+				environment = ctx.Env
+			}
+			if region == "" {
+				region = ctx.Region
+			}
+			if project == "" {
+				project = ctx.Project
+			}
+			if app == "" {
+				app = ctx.App
+			}
+		} else if contextName != "" {
+			// Only error if user explicitly specified a context that doesn't exist
+			return fmt.Errorf("context '%s' not found in configuration", contextName)
+		}
+	}
+
+	// Use default environment if still not specified
 	if environment == "" {
 		environment = cfg.DefaultEnv
 		if environment == "" {
@@ -101,6 +128,9 @@ func runRequest(cmd *cobra.Command, args []string) error {
 
 	if verbose {
 		fmt.Println("Request Details:")
+		if ctxName != "" {
+			fmt.Printf("  Context:     %s\n", ctxName)
+		}
 		fmt.Printf("  Service:     %s\n", serviceName)
 		fmt.Printf("  Environment: %s\n", environment)
 		if region != "" {
@@ -108,6 +138,9 @@ func runRequest(cmd *cobra.Command, args []string) error {
 		}
 		if project != "" {
 			fmt.Printf("  Project:     %s\n", project)
+		}
+		if app != "" {
+			fmt.Printf("  App:         %s\n", app)
 		}
 		fmt.Printf("  Method:      %s\n", method)
 		fmt.Printf("  Path:        %s\n", path)
@@ -151,6 +184,7 @@ func runRequest(cmd *cobra.Command, args []string) error {
 		Env:     environment,
 		Region:  region,
 		Project: project,
+		App:     app,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to resolve credentials: %w", err)

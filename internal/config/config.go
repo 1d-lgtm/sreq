@@ -139,6 +139,7 @@ var defaultConfig = `# sreq configuration
 #   {env}     - Environment (from -e flag)
 #   {region}  - Region (from -r flag)
 #   {project} - Project name (from -p flag)
+#   {app}     - App name (from -a flag)
 
 providers:
   consul:
@@ -146,8 +147,8 @@ providers:
     # token: ${CONSUL_TOKEN}
     # datacenter: us-east-1
     paths:
-      base_url: "{project}/{env}/{service}/{region}/config/base_url"
-      username: "{project}/{env}/{service}/{region}/config/username"
+      base_url: "{project}/{env}/{app}/{region}/config/{service}/base_url"
+      username: "{project}/{env}/{app}/{region}/config/{service}/username"
 
   aws_secrets:
     region: us-east-1
@@ -162,6 +163,24 @@ environments:
   - prod
 
 default_env: dev
+
+# Contexts are presets for quick switching between environments
+# Use with: sreq run GET /api -s myservice -c dev-us
+contexts:
+  # Example contexts - customize for your setup
+  # dev-us:
+  #   project: myproject
+  #   env: dev
+  #   region: us-east-1
+  #   app: myapp
+  #
+  # prod-eu:
+  #   project: myproject
+  #   env: prod
+  #   region: eu-west-1
+  #   app: myapp
+
+# default_context: dev-us
 `
 
 var defaultServices = `# sreq services configuration
