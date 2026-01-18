@@ -1,10 +1,17 @@
 package cmd
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/Priyans-hu/sreq/internal/client"
+	"github.com/Priyans-hu/sreq/internal/config"
+	"github.com/Priyans-hu/sreq/internal/resolver"
+	"github.com/Priyans-hu/sreq/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +35,7 @@ var (
 	requestData    string
 	requestHeaders []string
 	outputFormat   string
+	timeout        time.Duration
 )
 
 func init() {
@@ -36,6 +44,7 @@ func init() {
 	requestCmd.Flags().StringVarP(&requestData, "data", "d", "", "Request body (or @filename for file)")
 	requestCmd.Flags().StringArrayVarP(&requestHeaders, "header", "H", nil, "Add header (repeatable)")
 	requestCmd.Flags().StringVarP(&outputFormat, "output", "o", "json", "Output format (json/raw/headers)")
+	requestCmd.Flags().DurationVar(&timeout, "timeout", 30*time.Second, "Request timeout")
 }
 
 func runRequest(cmd *cobra.Command, args []string) error {
@@ -55,9 +64,18 @@ func runRequest(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("--service (-s) is required\n\nUsage: sreq run %s %s -s <service-name>", method, path)
 	}
 
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+
 	// Use default environment if not specified
 	if environment == "" {
-		environment = "dev"
+		environment = cfg.DefaultEnv
+		if environment == "" {
+			environment = "dev"
+		}
 	}
 
 	// Parse headers
@@ -101,28 +119,72 @@ func runRequest(cmd *cobra.Command, args []string) error {
 
 	if dryRun {
 		fmt.Println("[DRY RUN] Would execute:")
-		fmt.Printf("  %s https://<base-url-from-%s>%s\n", method, serviceName, path)
+		fmt.Printf("  %s <base-url>%s\n", method, path)
 		fmt.Println()
-		fmt.Println("Credentials would be fetched from:")
-		fmt.Println("  - Consul: services/<service>/config/*")
-		fmt.Println("  - AWS Secrets Manager: <service>/<env>/credentials")
+		fmt.Println("Credentials would be resolved from configured providers.")
 		return nil
 	}
 
-	// TODO: Implement actual request logic
-	// 1. Load config
-	// 2. Resolve credentials from providers
-	// 3. Build full URL
-	// 4. Make HTTP request
-	// 5. Display response
+	// Create resolver
+	res, err := resolver.New(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create resolver: %w", err)
+	}
 
-	fmt.Printf("Making %s request to %s...\n", method, path)
-	fmt.Printf("Service: %s | Environment: %s\n", serviceName, environment)
-	fmt.Println()
-	fmt.Println("Note: Provider integration not yet implemented.")
-	fmt.Println("This will fetch credentials from Consul/AWS and make the actual request.")
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
-	return nil
+	// Resolve credentials
+	if verbose {
+		fmt.Println("Resolving credentials...")
+	}
+
+	creds, err := res.Resolve(ctx, serviceName, environment)
+	if err != nil {
+		return fmt.Errorf("failed to resolve credentials: %w", err)
+	}
+
+	if verbose {
+		fmt.Printf("  Base URL:  %s\n", creds.BaseURL)
+		if creds.Username != "" {
+			fmt.Printf("  Username:  %s\n", creds.Username)
+			fmt.Printf("  Password:  %s\n", maskPassword(creds.Password))
+		}
+		if creds.APIKey != "" {
+			fmt.Printf("  API Key:   %s\n", maskPassword(creds.APIKey))
+		}
+		fmt.Println()
+	}
+
+	if creds.BaseURL == "" {
+		return fmt.Errorf("could not resolve base_url for service '%s' in environment '%s'", serviceName, environment)
+	}
+
+	// Create HTTP client
+	httpClient := client.New(
+		client.WithTimeout(timeout),
+		client.WithVerbose(verbose),
+	)
+
+	// Build request
+	req := &types.Request{
+		Method:      method,
+		Path:        path,
+		Service:     serviceName,
+		Environment: environment,
+		Body:        body,
+		Headers:     headers,
+	}
+
+	// Execute request
+	resp, err := httpClient.Do(ctx, req, creds)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+
+	// Output response
+	return outputResponse(resp, outputFormat)
 }
 
 func truncate(s string, maxLen int) string {
@@ -130,4 +192,46 @@ func truncate(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen] + "..."
+}
+
+func maskPassword(s string) string {
+	if len(s) <= 4 {
+		return "****"
+	}
+	return s[:2] + strings.Repeat("*", len(s)-4) + s[len(s)-2:]
+}
+
+func outputResponse(resp *types.Response, format string) error {
+	switch format {
+	case "json":
+		// Try to pretty-print if it's JSON
+		var jsonData interface{}
+		if err := json.Unmarshal(resp.Body, &jsonData); err == nil {
+			prettyJSON, err := json.MarshalIndent(jsonData, "", "  ")
+			if err == nil {
+				fmt.Println(string(prettyJSON))
+				return nil
+			}
+		}
+		// Fall back to raw if not valid JSON
+		fmt.Println(string(resp.Body))
+
+	case "raw":
+		fmt.Println(string(resp.Body))
+
+	case "headers":
+		fmt.Printf("HTTP %s\n", resp.Status)
+		for key, values := range resp.Headers {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+		fmt.Println()
+		fmt.Println(string(resp.Body))
+
+	default:
+		return fmt.Errorf("unknown output format: %s", format)
+	}
+
+	return nil
 }
