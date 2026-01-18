@@ -39,3 +39,6 @@ Thumbs.db
 # Debug
 debug
 __debug_bin
+
+# Local brainstorm (not for repo)
+.brainstorm.md
