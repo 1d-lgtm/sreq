@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Priyans-hu/sreq/internal/cache"
 	"github.com/Priyans-hu/sreq/internal/client"
 	"github.com/Priyans-hu/sreq/internal/config"
 	sreerrors "github.com/Priyans-hu/sreq/internal/errors"
@@ -38,6 +39,8 @@ var (
 	requestHeaders []string
 	outputFormat   string
 	timeout        time.Duration
+	offlineMode    bool
+	noCache        bool
 )
 
 func init() {
@@ -47,6 +50,8 @@ func init() {
 	requestCmd.Flags().StringArrayVarP(&requestHeaders, "header", "H", nil, "Add header (repeatable)")
 	requestCmd.Flags().StringVarP(&outputFormat, "output", "o", "json", "Output format (json/raw/headers)")
 	requestCmd.Flags().DurationVar(&timeout, "timeout", 30*time.Second, "Request timeout")
+	requestCmd.Flags().BoolVar(&offlineMode, "offline", false, "Use cached credentials only (no provider calls)")
+	requestCmd.Flags().BoolVar(&noCache, "no-cache", false, "Skip cache and fetch fresh credentials")
 }
 
 func runRun(cmd *cobra.Command, args []string) error {
@@ -167,30 +172,66 @@ func runRun(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Create resolver
-	res, err := resolver.New(cfg)
-	if err != nil {
-		return fmt.Errorf("failed to create resolver: %w", err)
-	}
-
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	// Resolve credentials
-	if verbose {
-		fmt.Println("Resolving credentials...")
+	// Get config directory for cache
+	configDir, _ := config.GetConfigDir()
+
+	// Try to get credentials from cache first (unless --no-cache)
+	var creds *types.ResolvedCredentials
+	var credCache *cache.Cache
+	useCache := !noCache && !cache.IsDisabled() && cache.KeyExists(configDir)
+
+	if useCache {
+		credCache, _ = cache.New(cache.Config{ConfigDir: configDir})
+		if credCache != nil {
+			creds, _ = credCache.Get(serviceName, environment)
+			if creds != nil && verbose {
+				fmt.Println("Using cached credentials")
+			}
+		}
 	}
 
-	creds, err := res.Resolve(ctx, resolver.ResolveOptions{
-		Service: serviceName,
-		Env:     environment,
-		Region:  region,
-		Project: project,
-		App:     app,
-	})
-	if err != nil {
-		return sreerrors.CredentialResolutionFailed(serviceName, environment, err)
+	// If offline mode, we must have cached credentials
+	if offlineMode {
+		if creds == nil {
+			return fmt.Errorf("no cached credentials found for %s/%s (run 'sreq sync %s' first)",
+				serviceName, environment, environment)
+		}
+	}
+
+	// If no cached credentials, resolve from providers
+	if creds == nil {
+		// Create resolver
+		res, err := resolver.New(cfg)
+		if err != nil {
+			return fmt.Errorf("failed to create resolver: %w", err)
+		}
+
+		// Resolve credentials
+		if verbose {
+			fmt.Println("Resolving credentials from providers...")
+		}
+
+		creds, err = res.Resolve(ctx, resolver.ResolveOptions{
+			Service: serviceName,
+			Env:     environment,
+			Region:  region,
+			Project: project,
+			App:     app,
+		})
+		if err != nil {
+			return sreerrors.CredentialResolutionFailed(serviceName, environment, err)
+		}
+
+		// Cache the credentials for next time (unless --no-cache)
+		if useCache && credCache != nil {
+			if err := credCache.Set(serviceName, environment, creds); err != nil && verbose {
+				fmt.Printf("Warning: failed to cache credentials: %v\n", err)
+			}
+		}
 	}
 
 	if verbose {
