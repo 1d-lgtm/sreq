@@ -1,0 +1,110 @@
+# sreq
+
+> Service-aware API client with automatic credential resolution.
+
+## What is sreq?
+
+sreq is a CLI tool that eliminates manual credential fetching when testing APIs. Instead of copying credentials from Consul, AWS Secrets Manager, or other sources, you just specify the service name and environment — sreq handles the rest.
+
+## Core Concept
+
+Traditional workflow:
+1. Open Consul → find service base URL
+2. Open AWS Secrets Manager → find credentials
+3. Copy-paste into curl/Postman
+4. Repeat for each environment
+
+With sreq:
+```bash
+sreq GET /api/v1/users -s auth-service -e dev
+# Done. sreq fetches URL from Consul, creds from AWS, makes request.
+```
+
+## Key Features
+
+- Service-aware: Pass service name, sreq resolves URLs and credentials
+- Multi-provider: Consul, AWS Secrets Manager, Vault (planned)
+- Environment switching: dev/staging/prod with one flag
+- Zero copy-paste: No manual credential hunting
+- Git-friendly: Share service configs with team
+
+## Usage Examples
+
+```bash
+# Initialize config
+sreq init
+
+# GET request
+sreq GET /api/v1/users -s auth-service -e dev
+
+# POST with JSON body
+sreq POST /api/v1/users -s auth-service -e prod -d '{"name":"test"}'
+
+# POST with file
+sreq POST /api/v1/users -s auth-service -d @body.json
+
+# List services
+sreq service list
+
+# Switch environment
+sreq env switch staging
+```
+
+## Configuration
+
+Config file: `~/.sreq/config.yaml`
+
+```yaml
+providers:
+  consul:
+    address: consul.example.com:8500
+    paths:
+      base_url: "services/{service}/config/base_url"
+      username: "services/{service}/config/username"
+
+  aws_secrets:
+    region: us-east-1
+    paths:
+      password: "{service}/{env}/password"
+
+environments: [dev, staging, prod]
+default_env: dev
+```
+
+Services file: `~/.sreq/services.yaml`
+
+```yaml
+services:
+  auth-service:
+    consul_key: auth
+    aws_prefix: auth-service
+```
+
+## Tech Stack
+
+- Language: Go
+- CLI Framework: Cobra
+- Config: Viper
+- Providers: Consul API, AWS SDK
+
+## Project Structure
+
+- cmd/sreq/ - CLI entrypoint
+- internal/config/ - Configuration management
+- internal/providers/ - Secret providers (Consul, AWS)
+- internal/client/ - HTTP client
+- pkg/types/ - Shared types
+
+## Installation
+
+```bash
+go install github.com/Priyans-hu/sreq/cmd/sreq@latest
+```
+
+## Repository
+
+https://github.com/Priyans-hu/sreq
+
+## Author
+
+Priyanshu Garg - https://github.com/Priyans-hu

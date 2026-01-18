@@ -1,0 +1,128 @@
+package config
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/Priyans-hu/sreq/pkg/types"
+	"gopkg.in/yaml.v3"
+)
+
+const (
+	// DefaultConfigDir is the default configuration directory
+	DefaultConfigDir = ".sreq"
+
+	// DefaultConfigFile is the default configuration file name
+	DefaultConfigFile = "config.yaml"
+
+	// DefaultServicesFile is the default services file name
+	DefaultServicesFile = "services.yaml"
+)
+
+// Load loads the configuration from the default or specified path
+func Load() (*types.Config, error) {
+	configPath := os.Getenv("SREQ_CONFIG")
+	if configPath == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get home directory: %w", err)
+		}
+		configPath = filepath.Join(homeDir, DefaultConfigDir, DefaultConfigFile)
+	}
+
+	return LoadFromFile(configPath)
+}
+
+// LoadFromFile loads configuration from a specific file
+func LoadFromFile(path string) (*types.Config, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("config file not found: %s (run 'sreq init' to create)", path)
+		}
+		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	var config types.Config
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	return &config, nil
+}
+
+// Init creates the default configuration files
+func Init() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	configDir := filepath.Join(homeDir, DefaultConfigDir)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Create default config
+	configPath := filepath.Join(configDir, DefaultConfigFile)
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {
+			return fmt.Errorf("failed to create config file: %w", err)
+		}
+	}
+
+	// Create default services file
+	servicesPath := filepath.Join(configDir, DefaultServicesFile)
+	if _, err := os.Stat(servicesPath); os.IsNotExist(err) {
+		if err := os.WriteFile(servicesPath, []byte(defaultServices), 0644); err != nil {
+			return fmt.Errorf("failed to create services file: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// GetConfigDir returns the configuration directory path
+func GetConfigDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(homeDir, DefaultConfigDir), nil
+}
+
+var defaultConfig = `# sreq configuration
+# Documentation: https://github.com/Priyans-hu/sreq
+
+providers:
+  consul:
+    address: localhost:8500
+    # token: ${CONSUL_TOKEN}
+    paths:
+      base_url: "services/{service}/config/base_url"
+      username: "services/{service}/config/username"
+
+  aws_secrets:
+    region: us-east-1
+    # profile: default
+    paths:
+      password: "{service}/{env}/credentials#password"
+      api_key: "{service}/{env}/credentials#api_key"
+
+environments:
+  - dev
+  - staging
+  - prod
+
+default_env: dev
+`
+
+var defaultServices = `# sreq services configuration
+# Add your services here
+
+services:
+  # example-service:
+  #   consul_key: example
+  #   aws_prefix: example-service
+`

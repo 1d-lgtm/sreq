@@ -1,0 +1,41 @@
+# Binaries
+sreq
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build output
+/dist/
+/bin/
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+coverage.html
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config (don't commit secrets)
+.env
+.env.local
+*.local.yaml
+
+# Debug
+debug
+__debug_bin
