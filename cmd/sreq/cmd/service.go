@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Priyans-hu/sreq/internal/config"
 	"github.com/spf13/cobra"
@@ -27,8 +28,13 @@ var serviceAddCmd = &cobra.Command{
 	Short: "Add a new service",
 	Long: `Add a new service configuration.
 
-Example:
-  sreq service add auth-service --consul-key auth --aws-prefix auth-svc`,
+Simple mode (uses path templates from config.yaml):
+  sreq service add auth-service --consul-key auth --aws-prefix auth-svc
+
+Advanced mode (explicit path mappings):
+  sreq service add invoice --path base_url=billing_service/invoice_svc_url \
+                           --path username=billing_service/invoice_svc_username \
+                           --path password=aws:billing/{env}/invoice#password`,
 	Args: cobra.ExactArgs(1),
 	RunE: runServiceAdd,
 }
@@ -42,8 +48,9 @@ var serviceRemoveCmd = &cobra.Command{
 
 // Flags for service add
 var (
-	consulKey string
-	awsPrefix string
+	consulKey    string
+	awsPrefix    string
+	pathMappings []string // For advanced mode: key=value pairs
 )
 
 func init() {
@@ -52,8 +59,12 @@ func init() {
 	serviceCmd.AddCommand(serviceAddCmd)
 	serviceCmd.AddCommand(serviceRemoveCmd)
 
-	serviceAddCmd.Flags().StringVar(&consulKey, "consul-key", "", "Consul key prefix for this service")
-	serviceAddCmd.Flags().StringVar(&awsPrefix, "aws-prefix", "", "AWS Secrets Manager prefix for this service")
+	// Simple mode flags
+	serviceAddCmd.Flags().StringVar(&consulKey, "consul-key", "", "Consul key prefix (simple mode)")
+	serviceAddCmd.Flags().StringVar(&awsPrefix, "aws-prefix", "", "AWS Secrets Manager prefix (simple mode)")
+
+	// Advanced mode flags
+	serviceAddCmd.Flags().StringArrayVar(&pathMappings, "path", nil, "Path mapping as key=value (advanced mode, repeatable)")
 }
 
 func runServiceList(cmd *cobra.Command, args []string) error {
@@ -93,11 +104,19 @@ func runServiceList(cmd *cobra.Command, args []string) error {
 			count++
 			fmt.Printf("  %s\n", name)
 			if svc, ok := svcData.(map[string]interface{}); ok {
+				// Check for simple mode
 				if consulKey, ok := svc["consul_key"].(string); ok {
 					fmt.Printf("    consul_key: %s\n", consulKey)
 				}
 				if awsPrefix, ok := svc["aws_prefix"].(string); ok {
 					fmt.Printf("    aws_prefix: %s\n", awsPrefix)
+				}
+				// Check for advanced mode
+				if paths, ok := svc["paths"].(map[string]interface{}); ok {
+					fmt.Println("    paths:")
+					for key, val := range paths {
+						fmt.Printf("      %s: %v\n", key, val)
+					}
 				}
 			}
 			fmt.Println()
@@ -117,8 +136,16 @@ func runServiceList(cmd *cobra.Command, args []string) error {
 func runServiceAdd(cmd *cobra.Command, args []string) error {
 	name := args[0]
 
-	if consulKey == "" && awsPrefix == "" {
-		return fmt.Errorf("at least one of --consul-key or --aws-prefix is required")
+	// Determine mode based on flags
+	hasSimpleFlags := consulKey != "" || awsPrefix != ""
+	hasAdvancedFlags := len(pathMappings) > 0
+
+	if hasSimpleFlags && hasAdvancedFlags {
+		return fmt.Errorf("cannot mix simple mode (--consul-key, --aws-prefix) with advanced mode (--path)")
+	}
+
+	if !hasSimpleFlags && !hasAdvancedFlags {
+		return fmt.Errorf("specify either simple mode flags (--consul-key, --aws-prefix) or advanced mode (--path)")
 	}
 
 	configDir, err := config.GetConfigDir()
@@ -148,14 +175,38 @@ func runServiceAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("service '%s' already exists", name)
 	}
 
-	// Add new service
-	svcConfig := map[string]string{}
-	if consulKey != "" {
-		svcConfig["consul_key"] = consulKey
+	// Build service config based on mode
+	var svcConfig map[string]interface{}
+
+	if hasSimpleFlags {
+		// Simple mode
+		svcConfig = map[string]interface{}{}
+		if consulKey != "" {
+			svcConfig["consul_key"] = consulKey
+		}
+		if awsPrefix != "" {
+			svcConfig["aws_prefix"] = awsPrefix
+		}
+	} else {
+		// Advanced mode - parse path mappings
+		paths := map[string]string{}
+		for _, mapping := range pathMappings {
+			parts := strings.SplitN(mapping, "=", 2)
+			if len(parts) != 2 {
+				return fmt.Errorf("invalid path mapping: %s (expected key=value)", mapping)
+			}
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			if key == "" || value == "" {
+				return fmt.Errorf("invalid path mapping: %s (key and value cannot be empty)", mapping)
+			}
+			paths[key] = value
+		}
+		svcConfig = map[string]interface{}{
+			"paths": paths,
+		}
 	}
-	if awsPrefix != "" {
-		svcConfig["aws_prefix"] = awsPrefix
-	}
+
 	services[name] = svcConfig
 
 	// Write back
@@ -168,12 +219,23 @@ func runServiceAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to write services file: %w", err)
 	}
 
+	// Display result
 	fmt.Printf("Added service: %s\n", name)
-	if consulKey != "" {
-		fmt.Printf("  consul_key: %s\n", consulKey)
-	}
-	if awsPrefix != "" {
-		fmt.Printf("  aws_prefix: %s\n", awsPrefix)
+	if hasSimpleFlags {
+		fmt.Println("  Mode: simple")
+		if consulKey != "" {
+			fmt.Printf("  consul_key: %s\n", consulKey)
+		}
+		if awsPrefix != "" {
+			fmt.Printf("  aws_prefix: %s\n", awsPrefix)
+		}
+	} else {
+		fmt.Println("  Mode: advanced")
+		fmt.Println("  paths:")
+		for _, mapping := range pathMappings {
+			parts := strings.SplitN(mapping, "=", 2)
+			fmt.Printf("    %s: %s\n", parts[0], parts[1])
+		}
 	}
 
 	return nil
