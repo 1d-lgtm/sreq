@@ -237,38 +237,14 @@ sreq/
 ## Roadmap
 
 - [x] Project setup
-- [ ] Core CLI structure (Cobra)
 - [ ] Consul provider
 - [ ] AWS Secrets Manager provider
-- [ ] HTTP client with auth
-- [ ] Environment switching
-- [ ] Config file management
-- [ ] **Credential caching** (offline mode)
-- [ ] Homebrew formula
+- [ ] Credential caching (offline mode)
 - [ ] HashiCorp Vault provider
-- [ ] Environment variable provider
 - [ ] Request history
-- [ ] TUI mode (Bubble Tea)
-- [ ] Bruno extension
+- [ ] TUI mode
 
-### Credential Caching (Planned)
-
-Cache credentials locally for faster requests and offline use:
-
-```bash
-# Sync credentials for an environment
-sreq sync dev
-
-# Sync all environments
-sreq sync --all
-
-# Use cached credentials (offline mode)
-sreq GET /api/v1/users -s auth-service --offline
-
-# Cache auto-refreshes based on TTL (default: 1 hour)
-```
-
-Cache location: `~/.sreq/cache/{env}/{service}.json`
+See [docs/ROADMAP.md](docs/ROADMAP.md) for detailed planning.
 
 ## Contributing
 
