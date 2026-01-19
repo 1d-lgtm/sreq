@@ -101,12 +101,12 @@ func configureConsul() error {
 
 	consulCfg := cfg.Providers["consul"]
 
-	// Consul address
+	// Consul address (default for most environments)
 	defaultAddr := consulCfg.Address
 	if defaultAddr == "" {
 		defaultAddr = "localhost:8500"
 	}
-	fmt.Printf("Consul address [%s]: ", defaultAddr)
+	fmt.Printf("Default Consul address [%s]: ", defaultAddr)
 	addr, _ := reader.ReadString('\n')
 	addr = strings.TrimSpace(addr)
 	if addr == "" {
@@ -114,7 +114,66 @@ func configureConsul() error {
 	}
 	consulCfg.Address = addr
 
+	// Environment-specific addresses
+	fmt.Println()
+	fmt.Println("Environment-specific Consul addresses (optional)")
+	fmt.Println("Use this if you have different Consul servers for different environments.")
+	fmt.Println("Example: non-prod Consul for dev/qa/staging, separate Consul for prod")
+	fmt.Println()
+
+	fmt.Print("Add environment-specific addresses? (y/N): ")
+	addEnvAddr, _ := reader.ReadString('\n')
+	addEnvAddr = strings.TrimSpace(strings.ToLower(addEnvAddr))
+
+	if addEnvAddr == "y" || addEnvAddr == "yes" {
+		if consulCfg.EnvAddresses == nil {
+			consulCfg.EnvAddresses = make(map[string]string)
+		}
+
+		fmt.Println()
+		fmt.Println("Enter environment-specific addresses (empty to finish):")
+		fmt.Println("Format: <env>=<address> (e.g., prod=consul-prod.internal:8500)")
+		fmt.Println()
+
+		for {
+			// Show current env addresses
+			if len(consulCfg.EnvAddresses) > 0 {
+				fmt.Println("Current env addresses:")
+				for env, envAddr := range consulCfg.EnvAddresses {
+					fmt.Printf("  %s: %s\n", env, envAddr)
+				}
+				fmt.Println()
+			}
+
+			fmt.Print("Add/update env address (or press Enter to finish): ")
+			input, _ := reader.ReadString('\n')
+			input = strings.TrimSpace(input)
+
+			if input == "" {
+				break
+			}
+
+			parts := strings.SplitN(input, "=", 2)
+			if len(parts) != 2 {
+				fmt.Println("Invalid format. Use: <env>=<address>")
+				continue
+			}
+
+			envName := strings.TrimSpace(parts[0])
+			envAddr := strings.TrimSpace(parts[1])
+
+			if envName == "" || envAddr == "" {
+				fmt.Println("Both environment name and address are required.")
+				continue
+			}
+
+			consulCfg.EnvAddresses[envName] = envAddr
+			fmt.Printf("Added: %s -> %s\n", envName, envAddr)
+		}
+	}
+
 	// Consul token
+	fmt.Println()
 	fmt.Print("Consul token (leave empty to use CONSUL_HTTP_TOKEN env): ")
 	token, _ := reader.ReadString('\n')
 	token = strings.TrimSpace(token)
@@ -148,7 +207,15 @@ func configureConsul() error {
 		return err
 	}
 
+	fmt.Println()
 	fmt.Println("Consul configuration saved.")
+	if len(consulCfg.EnvAddresses) > 0 {
+		fmt.Println("Configured addresses:")
+		fmt.Printf("  Default: %s\n", consulCfg.Address)
+		for env, envAddr := range consulCfg.EnvAddresses {
+			fmt.Printf("  %s: %s\n", env, envAddr)
+		}
+	}
 	return nil
 }
 
@@ -225,12 +292,13 @@ func configureAWS() error {
 
 // providerConfig for yaml marshaling
 type providerConfig struct {
-	Address    string            `yaml:"address,omitempty"`
-	Token      string            `yaml:"token,omitempty"`
-	Region     string            `yaml:"region,omitempty"`
-	Profile    string            `yaml:"profile,omitempty"`
-	Datacenter string            `yaml:"datacenter,omitempty"`
-	Paths      map[string]string `yaml:"paths,omitempty"`
+	Address      string            `yaml:"address,omitempty"`
+	EnvAddresses map[string]string `yaml:"env_addresses,omitempty"`
+	Token        string            `yaml:"token,omitempty"`
+	Region       string            `yaml:"region,omitempty"`
+	Profile      string            `yaml:"profile,omitempty"`
+	Datacenter   string            `yaml:"datacenter,omitempty"`
+	Paths        map[string]string `yaml:"paths,omitempty"`
 }
 
 // configFile represents the config file structure
