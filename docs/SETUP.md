@@ -6,10 +6,10 @@ This guide helps you set up sreq (service-aware API client CLI) on your machine.
 
 ### Required
 
-| Tool | Version | Check Command | Install |
-|------|---------|---------------|---------|
-| Go | 1.21+ | `go version` | https://go.dev/dl/ |
-| Git | Any | `git --version` | https://git-scm.com/downloads |
+| Tool | Version | Check Command | Required For |
+|------|---------|---------------|--------------|
+| Go | 1.21+ | `go version` | Building from source only |
+| Git | Any | `git --version` | Building from source only |
 
 ### Optional (for specific providers)
 
@@ -20,7 +20,44 @@ This guide helps you set up sreq (service-aware API client CLI) on your machine.
 
 ## Installation
 
-### Option 1: Build from Source (Recommended)
+### Option 1: Download Binary (Recommended)
+
+Download pre-built binaries from the [Releases page](https://github.com/Priyans-hu/sreq/releases).
+
+```bash
+# Linux (amd64)
+curl -LO https://github.com/Priyans-hu/sreq/releases/latest/download/sreq_linux_amd64.tar.gz
+tar -xzf sreq_linux_amd64.tar.gz
+sudo mv sreq /usr/local/bin/
+
+# Linux (arm64)
+curl -LO https://github.com/Priyans-hu/sreq/releases/latest/download/sreq_linux_arm64.tar.gz
+tar -xzf sreq_linux_arm64.tar.gz
+sudo mv sreq /usr/local/bin/
+
+# macOS (Intel)
+curl -LO https://github.com/Priyans-hu/sreq/releases/latest/download/sreq_darwin_amd64.tar.gz
+tar -xzf sreq_darwin_amd64.tar.gz
+sudo mv sreq /usr/local/bin/
+
+# macOS (Apple Silicon)
+curl -LO https://github.com/Priyans-hu/sreq/releases/latest/download/sreq_darwin_arm64.tar.gz
+tar -xzf sreq_darwin_arm64.tar.gz
+sudo mv sreq /usr/local/bin/
+
+# Windows (PowerShell)
+Invoke-WebRequest -Uri https://github.com/Priyans-hu/sreq/releases/latest/download/sreq_windows_amd64.zip -OutFile sreq.zip
+Expand-Archive sreq.zip -DestinationPath .
+Move-Item sreq.exe C:\Windows\System32\
+```
+
+### Option 2: Go Install
+
+```bash
+go install github.com/Priyans-hu/sreq/cmd/sreq@latest
+```
+
+### Option 3: Build from Source
 
 ```bash
 # Clone the repository
@@ -35,12 +72,6 @@ sudo mv sreq /usr/local/bin/
 # Or for user-local install:
 mkdir -p ~/bin && mv sreq ~/bin/
 # Ensure ~/bin is in your PATH
-```
-
-### Option 2: Go Install
-
-```bash
-go install github.com/Priyans-hu/sreq/cmd/sreq@latest
 ```
 
 ### Verify Installation
@@ -318,12 +349,28 @@ sreq auth test aws
 
 When setting up sreq programmatically:
 
-1. **Check prerequisites**: Verify Go 1.21+ is installed
-2. **Clone and build**: Use the build from source method
+1. **Detect platform**: Determine OS and architecture
+2. **Download binary**: Use the binary download method (no Go required)
+   ```bash
+   # Example for Linux amd64
+   curl -LO https://github.com/Priyans-hu/sreq/releases/latest/download/sreq_linux_amd64.tar.gz
+   tar -xzf sreq_linux_amd64.tar.gz
+   sudo mv sreq /usr/local/bin/
+   ```
 3. **Initialize**: Run `sreq init` to create config directory
 4. **Configure**: Write config.yaml based on user's infrastructure
 5. **Set credentials**: Configure environment variables for providers
 6. **Verify**: Run `sreq auth test <provider>` to confirm connectivity
+
+**Platform detection:**
+| OS | Arch | Archive |
+|----|------|---------|
+| Linux | x86_64 | `sreq_linux_amd64.tar.gz` |
+| Linux | arm64 | `sreq_linux_arm64.tar.gz` |
+| macOS | x86_64 | `sreq_darwin_amd64.tar.gz` |
+| macOS | arm64 | `sreq_darwin_arm64.tar.gz` |
+| Windows | x86_64 | `sreq_windows_amd64.zip` |
+| Windows | arm64 | `sreq_windows_arm64.zip` |
 
 **Key files to create/modify:**
 - `~/.sreq/config.yaml` - Service and provider configuration
