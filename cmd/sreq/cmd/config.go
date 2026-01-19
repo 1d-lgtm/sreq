@@ -73,6 +73,12 @@ func runConfigShow(cmd *cobra.Command, args []string) error {
 			if provider.Address != "" {
 				fmt.Printf("    address: %s\n", provider.Address)
 			}
+			if len(provider.EnvAddresses) > 0 {
+				fmt.Println("    env_addresses:")
+				for env, addr := range provider.EnvAddresses {
+					fmt.Printf("      %s: %s\n", env, addr)
+				}
+			}
 			if provider.Region != "" {
 				fmt.Printf("    region: %s\n", provider.Region)
 			}

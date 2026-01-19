@@ -48,9 +48,27 @@ type ProviderConfig struct {
 	Profile    string            `yaml:"profile,omitempty"`
 	Datacenter string            `yaml:"datacenter,omitempty"` // Consul datacenter
 
+	// Environment-specific addresses (overrides Address for specific envs)
+	// Example:
+	//   address: consul-nonprod.internal:8500      # default
+	//   env_addresses:
+	//     prod: consul-prod.internal:8500          # override for prod
+	EnvAddresses map[string]string `yaml:"env_addresses,omitempty"`
+
 	// Default path templates for simple mode
 	// Use {service} and {env} as placeholders
 	Paths map[string]string `yaml:"paths,omitempty"`
+}
+
+// GetAddressForEnv returns the appropriate address for the given environment.
+// It checks env_addresses first, then falls back to the default address.
+func (p *ProviderConfig) GetAddressForEnv(env string) string {
+	if p.EnvAddresses != nil {
+		if addr, ok := p.EnvAddresses[env]; ok {
+			return addr
+		}
+	}
+	return p.Address
 }
 
 // Context represents a preset of variables for quick switching
