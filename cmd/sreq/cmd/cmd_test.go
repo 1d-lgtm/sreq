@@ -73,11 +73,11 @@ func TestVersionCmd_Run(t *testing.T) {
 	// Run the version command
 	versionCmd.Run(versionCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	// Verify output contains version info
@@ -320,10 +320,10 @@ func setupTestEnv(t *testing.T) (string, func()) {
 
 	tmpDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
+	_ = os.Setenv("HOME", tmpDir)
 
 	cleanup := func() {
-		os.Setenv("HOME", oldHome)
+		_ = os.Setenv("HOME", oldHome)
 	}
 
 	return tmpDir, cleanup
@@ -379,11 +379,11 @@ func TestRunInit_AlreadyInitialized(t *testing.T) {
 	// Run init command
 	err := runInit(initCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -407,11 +407,11 @@ func TestRunInit_Fresh(t *testing.T) {
 	// Run init command on fresh directory
 	err := runInit(initCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -448,11 +448,11 @@ func TestRunConfigPath(t *testing.T) {
 
 	err := runConfigPath(configPathCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -469,15 +469,15 @@ func TestRunConfigPath_WithEnvVar(t *testing.T) {
 	defer cleanup()
 
 	customPath := filepath.Join(tmpDir, "custom-config.yaml")
-	os.WriteFile(customPath, []byte("providers: {}"), 0644)
+	_ = os.WriteFile(customPath, []byte("providers: {}"), 0644)
 
 	oldEnv := os.Getenv("SREQ_CONFIG")
-	os.Setenv("SREQ_CONFIG", customPath)
+	_ = os.Setenv("SREQ_CONFIG", customPath)
 	defer func() {
 		if oldEnv == "" {
-			os.Unsetenv("SREQ_CONFIG")
+			_ = os.Unsetenv("SREQ_CONFIG")
 		} else {
-			os.Setenv("SREQ_CONFIG", oldEnv)
+			_ = os.Setenv("SREQ_CONFIG", oldEnv)
 		}
 	}()
 
@@ -488,11 +488,11 @@ func TestRunConfigPath_WithEnvVar(t *testing.T) {
 
 	err := runConfigPath(configPathCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -517,11 +517,11 @@ func TestRunConfigShow(t *testing.T) {
 
 	err := runConfigShow(configShowCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -552,11 +552,11 @@ func TestRunEnvList(t *testing.T) {
 
 	err := runEnvList(envListCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -587,11 +587,11 @@ func TestRunEnvCurrent(t *testing.T) {
 
 	err := runEnvCurrent(envCurrentCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -616,11 +616,11 @@ func TestRunEnvSwitch(t *testing.T) {
 
 	err := runEnvSwitch(envSwitchCmd, []string{"staging"})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -662,11 +662,11 @@ func TestRunServiceList(t *testing.T) {
 
 	err := runServiceList(serviceListCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -696,7 +696,7 @@ func TestRunServiceAdd_SimpleMode(t *testing.T) {
 
 	err := runServiceAdd(serviceAddCmd, []string{"test-service"})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	// Reset flags
@@ -705,7 +705,7 @@ func TestRunServiceAdd_SimpleMode(t *testing.T) {
 	pathMappings = nil
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -738,7 +738,7 @@ func TestRunServiceAdd_AdvancedMode(t *testing.T) {
 
 	err := runServiceAdd(serviceAddCmd, []string{"advanced-service"})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	// Reset flags
@@ -747,7 +747,7 @@ func TestRunServiceAdd_AdvancedMode(t *testing.T) {
 	pathMappings = nil
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -822,11 +822,11 @@ func TestRunServiceRemove(t *testing.T) {
 
 	err = runServiceRemove(serviceRemoveCmd, []string{"removable-service"})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -894,7 +894,7 @@ func TestLoadServicesConfig_NotFound(t *testing.T) {
 
 	// Don't create config, just the directory
 	configDir := filepath.Join(tmpDir, ".sreq")
-	os.MkdirAll(configDir, 0755)
+	_ = os.MkdirAll(configDir, 0755)
 
 	_, err := LoadServicesConfig()
 
@@ -920,7 +920,7 @@ services:
   test-service:
     consul_key: test
 `
-	os.WriteFile(filepath.Join(configDir, "services.yaml"), []byte(servicesContent), 0644)
+	_ = os.WriteFile(filepath.Join(configDir, "services.yaml"), []byte(servicesContent), 0644)
 
 	services, err := LoadServicesConfig()
 
@@ -936,12 +936,12 @@ services:
 func TestRunCacheStatus_CacheDisabled(t *testing.T) {
 	// Set CI environment to disable cache
 	oldCI := os.Getenv("CI")
-	os.Setenv("CI", "true")
+	_ = os.Setenv("CI", "true")
 	defer func() {
 		if oldCI == "" {
-			os.Unsetenv("CI")
+			_ = os.Unsetenv("CI")
 		} else {
-			os.Setenv("CI", oldCI)
+			_ = os.Setenv("CI", oldCI)
 		}
 	}()
 
@@ -952,11 +952,11 @@ func TestRunCacheStatus_CacheDisabled(t *testing.T) {
 
 	err := runCacheStatus(cacheStatusCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -974,20 +974,20 @@ func TestRunCacheStatus_NotInitialized(t *testing.T) {
 
 	// Create config but no .key file
 	configDir := filepath.Join(tmpDir, ".sreq")
-	os.MkdirAll(configDir, 0755)
-	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("providers: {}"), 0644)
+	_ = os.MkdirAll(configDir, 0755)
+	_ = os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("providers: {}"), 0644)
 
 	// Unset CI to enable cache
 	oldCI := os.Getenv("CI")
-	os.Unsetenv("CI")
+	_ = os.Unsetenv("CI")
 	oldNoCache := os.Getenv("SREQ_NO_CACHE")
-	os.Unsetenv("SREQ_NO_CACHE")
+	_ = os.Unsetenv("SREQ_NO_CACHE")
 	defer func() {
 		if oldCI != "" {
-			os.Setenv("CI", oldCI)
+			_ = os.Setenv("CI", oldCI)
 		}
 		if oldNoCache != "" {
-			os.Setenv("SREQ_NO_CACHE", oldNoCache)
+			_ = os.Setenv("SREQ_NO_CACHE", oldNoCache)
 		}
 	}()
 
@@ -998,11 +998,11 @@ func TestRunCacheStatus_NotInitialized(t *testing.T) {
 
 	err := runCacheStatus(cacheStatusCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -1020,8 +1020,8 @@ func TestRunCacheClear_NotInitialized(t *testing.T) {
 
 	// Create config but no .key file
 	configDir := filepath.Join(tmpDir, ".sreq")
-	os.MkdirAll(configDir, 0755)
-	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("providers: {}"), 0644)
+	_ = os.MkdirAll(configDir, 0755)
+	_ = os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("providers: {}"), 0644)
 
 	// Capture output
 	oldStdout := os.Stdout
@@ -1030,11 +1030,11 @@ func TestRunCacheClear_NotInitialized(t *testing.T) {
 
 	err := runCacheClear(cacheClearCmd, []string{})
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
 	if err != nil {
@@ -1049,12 +1049,12 @@ func TestRunCacheClear_NotInitialized(t *testing.T) {
 func TestSyncCmd_CacheDisabled(t *testing.T) {
 	// Set CI environment to disable cache
 	oldCI := os.Getenv("CI")
-	os.Setenv("CI", "true")
+	_ = os.Setenv("CI", "true")
 	defer func() {
 		if oldCI == "" {
-			os.Unsetenv("CI")
+			_ = os.Unsetenv("CI")
 		} else {
-			os.Setenv("CI", oldCI)
+			_ = os.Setenv("CI", oldCI)
 		}
 	}()
 

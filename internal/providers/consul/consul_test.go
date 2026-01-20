@@ -327,8 +327,8 @@ func TestNew(t *testing.T) {
 func TestNew_TokenFromEnv(t *testing.T) {
 	// Set up test environment variable
 	testToken := "test-env-token"
-	os.Setenv("TEST_CONSUL_TOKEN", testToken)
-	defer os.Unsetenv("TEST_CONSUL_TOKEN")
+	_ = os.Setenv("TEST_CONSUL_TOKEN", testToken)
+	defer func() { _ = os.Unsetenv("TEST_CONSUL_TOKEN") }()
 
 	cfg := Config{
 		Address: "localhost:8500",
@@ -347,7 +347,7 @@ func TestNew_TokenFromEnv(t *testing.T) {
 
 func TestNew_TokenFromEnv_NotSet(t *testing.T) {
 	// Ensure env var is not set
-	os.Unsetenv("NONEXISTENT_TOKEN")
+	_ = os.Unsetenv("NONEXISTENT_TOKEN")
 
 	cfg := Config{
 		Address: "localhost:8500",
