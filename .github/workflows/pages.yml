@@ -30,14 +30,11 @@ jobs:
         run: npm ci
         working-directory: website
 
-      - name: Build landing page
+      - name: Build site
         run: npm run build
         working-directory: website
         env:
           NODE_ENV: production
-
-      - name: Copy docs into build output
-        run: cp -r docs website/out/docs
 
       - uses: actions/upload-pages-artifact@v3
         with:
