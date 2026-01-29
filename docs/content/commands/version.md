@@ -22,4 +22,4 @@ sreq version v0.1.0
 
 ## See Also
 
-- [upgrade](/sreq/commands/upgrade) — Update to latest version
+- [upgrade](/commands/upgrade) — Update to latest version

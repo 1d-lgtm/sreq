@@ -131,6 +131,6 @@ export SREQ_CONFIG=/path/to/custom/config.yaml
 
 ## See Also
 
-- [init](/sreq/commands/init) — Initialize configuration
-- [auth](/sreq/commands/auth) — Configure authentication
-- [Configuration](/sreq/configuration) — Full reference
+- [init](/commands/init) — Initialize configuration
+- [auth](/commands/auth) — Configure authentication
+- [Configuration](/configuration) — Full reference

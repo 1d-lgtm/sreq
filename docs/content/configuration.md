@@ -232,5 +232,5 @@ From lowest to highest priority:
 
 ## Next Steps
 
-- [Commands](/sreq/commands) — Full command reference
-- [Providers](/sreq/providers) — Provider-specific setup
+- [Commands](/commands) — Full command reference
+- [Providers](/providers) — Provider-specific setup

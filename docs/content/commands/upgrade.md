@@ -85,5 +85,5 @@ go install github.com/Priyans-hu/sreq/cmd/sreq@latest
 
 ## See Also
 
-- [Installation](/sreq/installation) — All installation methods
-- [version](/sreq/commands/version) — Show current version
+- [Installation](/installation) — All installation methods
+- [version](/commands/version) — Show current version

@@ -116,5 +116,5 @@ providers:
 
 ## See Also
 
-- [run](/sreq/commands/run) — Make requests with `-e` flag
-- [Configuration](/sreq/configuration) — Full configuration reference
+- [run](/commands/run) — Make requests with `-e` flag
+- [Configuration](/configuration) — Full configuration reference

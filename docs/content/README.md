@@ -131,7 +131,7 @@ A CLI tool that makes service-aware HTTP requests with automatic credential reso
 
 ## Next Steps
 
-- [Installation](/sreq/installation) — Get sreq installed
-- [Getting Started](/sreq/getting-started) — Your first request in minutes
-- [Configuration](/sreq/configuration) — Deep dive into config options
-- [Providers](/sreq/providers/) — Provider-specific setup guides
+- [Installation](/installation) — Get sreq installed
+- [Getting Started](/getting-started) — Your first request in minutes
+- [Configuration](/configuration) — Deep dive into config options
+- [Providers](/providers/) — Provider-specific setup guides

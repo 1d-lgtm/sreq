@@ -115,6 +115,6 @@ providers:
 
 ## See Also
 
-- [Configuration](/sreq/configuration) — Full configuration reference
-- [Consul Provider](/sreq/providers/consul) — Consul setup details
-- [AWS Provider](/sreq/providers/aws) — AWS setup details
+- [Configuration](/configuration) — Full configuration reference
+- [Consul Provider](/providers/consul) — Consul setup details
+- [AWS Provider](/providers/aws) — AWS setup details

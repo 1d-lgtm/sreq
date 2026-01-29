@@ -130,9 +130,9 @@ sreq requires credentials for the providers you want to use:
 | Environment Variables | Variables set in shell |
 | Dotenv | `.env` file in project directory |
 
-See [Configuration](/sreq/configuration) for detailed setup instructions.
+See [Configuration](/configuration) for detailed setup instructions.
 
 ## Next Steps
 
-- [Getting Started](/sreq/getting-started) — Make your first request
-- [Configuration](/sreq/configuration) — Set up providers and services
+- [Getting Started](/getting-started) — Make your first request
+- [Configuration](/configuration) — Set up providers and services
